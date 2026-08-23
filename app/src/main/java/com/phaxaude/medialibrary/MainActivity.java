@@ -40,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         cardImages.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Images Selected", Toast.LENGTH_SHORT).show();
+            // Intent is Android's way of launching a new screen
+            android.content.Intent intent = new android.content.Intent(MainActivity.this, ImageFoldersActivity.class);
+            startActivity(intent);
         });
     }
 
