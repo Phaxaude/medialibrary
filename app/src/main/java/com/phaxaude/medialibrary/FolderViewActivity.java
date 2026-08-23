@@ -14,17 +14,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 import com.bumptech.glide.Glide;
 import java.util.List;
+import android.transition.TransitionManager;
+import android.transition.AutoTransition;
 
 public class FolderViewActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
     private RecyclerView recyclerThumbnails;
     private View divider;
+    private ViewGroup rootContainer;
     private List<String> imagePaths;
 
     // Variables for the swipe-to-fullscreen feature
     private GestureDetector gestureDetector;
     private boolean isFullscreen = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,7 @@ public class FolderViewActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.viewPager);
         recyclerThumbnails = findViewById(R.id.recyclerThumbnails);
         divider = findViewById(R.id.divider);
+        rootContainer = findViewById(R.id.rootContainer); // Add this
 
         String bucketId = getIntent().getStringExtra("BUCKET_ID");
         if (bucketId == null) return;
@@ -63,12 +68,19 @@ public class FolderViewActivity extends AppCompatActivity {
     }
 
     // Toggles the visibility of the bottom half of the screen
+    // Toggles the visibility of the bottom half of the screen smoothly
     private void toggleFullscreen(boolean goFullscreen) {
         if (goFullscreen && !isFullscreen) {
+            // Tell Android to animate the upcoming layout changes
+            TransitionManager.beginDelayedTransition(rootContainer, new AutoTransition());
+
             recyclerThumbnails.setVisibility(View.GONE);
             divider.setVisibility(View.GONE);
             isFullscreen = true;
         } else if (!goFullscreen && isFullscreen) {
+            // Tell Android to animate the upcoming layout changes
+            TransitionManager.beginDelayedTransition(rootContainer, new AutoTransition());
+
             recyclerThumbnails.setVisibility(View.VISIBLE);
             divider.setVisibility(View.VISIBLE);
             isFullscreen = false;
