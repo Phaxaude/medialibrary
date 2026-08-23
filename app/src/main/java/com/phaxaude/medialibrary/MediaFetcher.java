@@ -141,4 +141,39 @@ public class MediaFetcher {
 
         return imagePaths;
     }
+    public static List<MediaFile> getVideoFiles(Context context) {
+        List<MediaFile> videoFiles = new ArrayList<>();
+        ContentResolver resolver = context.getContentResolver();
+
+        String[] projection = {
+                MediaStore.Video.Media.TITLE,
+                MediaStore.Video.Media.DATA,
+                MediaStore.Video.Media.DURATION
+        };
+
+        // Sort by newest videos first
+        Cursor cursor = resolver.query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                MediaStore.Video.Media.DATE_ADDED + " DESC"
+        );
+
+        if (cursor != null) {
+            int titleCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.TITLE);
+            int pathCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
+            int durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION);
+
+            while (cursor.moveToNext()) {
+                String title = cursor.getString(titleCol);
+                String path = cursor.getString(pathCol);
+                long duration = cursor.getLong(durationCol);
+
+                videoFiles.add(new MediaFile(title, path, duration));
+            }
+            cursor.close();
+        }
+        return videoFiles;
+    }
 }

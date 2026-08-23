@@ -1,100 +1,51 @@
 package com.phaxaude.medialibrary;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import java.util.List;
-import androidx.cardview.widget.CardView;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    // A unique code to identify our permission request
     private static final int PERMISSION_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // Loads the UI
+        setContentView(R.layout.activity_main);
 
-        requestStoragePermissions();
+        // Request storage permissions at runtime for modern Android
+        checkAndRequestPermissions();
 
-        // 1. Find the cards in the XML by their IDs
-        CardView cardAudio = findViewById(R.id.cardAudio);
-        CardView cardVideo = findViewById(R.id.cardVideo);
         CardView cardImages = findViewById(R.id.cardImages);
+        CardView cardVideo = findViewById(R.id.cardVideo);
 
-        // 2. Set up click listeners for each
-        cardAudio.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Audio Selected", Toast.LENGTH_SHORT).show();
+        cardImages.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ImageFoldersActivity.class);
+            startActivity(intent);
         });
 
         cardVideo.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Videos Selected", Toast.LENGTH_SHORT).show();
-        });
-
-        cardImages.setOnClickListener(v -> {
-            // Intent is Android's way of launching a new screen
-            android.content.Intent intent = new android.content.Intent(MainActivity.this, ImageFoldersActivity.class);
+            Intent intent = new Intent(MainActivity.this, VideosActivity.class);
             startActivity(intent);
         });
     }
 
-    private void requestStoragePermissions() {
-        String[] permissions;
-
-        // Android 13 (API 33) introduced granular media permissions
+    private void checkAndRequestPermissions() {
+        String permission;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions = new String[]{
-                    Manifest.permission.READ_MEDIA_AUDIO,
-                    Manifest.permission.READ_MEDIA_VIDEO,
-                    Manifest.permission.READ_MEDIA_IMAGES
-            };
+            permission = Manifest.permission.READ_MEDIA_VIDEO; // For Android 13+
         } else {
-            // Older Android versions just use one blanket storage permission
-            permissions = new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-            };
+            permission = Manifest.permission.READ_EXTERNAL_STORAGE; // For older versions
         }
 
-        // Check if we already have the permission
-        if (ContextCompat.checkSelfPermission(this, permissions[0]) == PackageManager.PERMISSION_GRANTED) {
-            fetchAndLogMedia(); // We have it, go ahead and fetch!
-        } else {
-            // We don't have it, trigger the system pop-up
-            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    // This method is called automatically after the user clicks "Allow" or "Deny" on the pop-up
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                fetchAndLogMedia(); // User clicked Allow!
-            } else {
-                Log.e("MediaLibrary", "Permission denied by user.");
-            }
-        }
-    }
-
-    private void fetchAndLogMedia() {
-        // Run our custom fetcher
-        List<MediaFile> audioFiles = MediaFetcher.getAudioFiles(this);
-
-        // Log.d is Android's version of a print() statement
-        Log.d("MediaLibrary", "Found " + audioFiles.size() + " audio files.");
-
-        for (MediaFile file : audioFiles) {
-            Log.d("MediaLibrary", "Title: " + file.getTitle() + " | Path: " + file.getPath());
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission, Manifest.permission.READ_MEDIA_IMAGES}, PERMISSION_REQUEST_CODE);
         }
     }
 }

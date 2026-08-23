@@ -20,6 +20,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MediaLibrary">
 
+        <!-- The Main Home Screen -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -30,9 +31,12 @@
             </intent-filter>
         </activity>
 
-        <!-- THIS IS THE NEW LINE -->
+        <!-- The Image Screens -->
         <activity android:name=".ImageFoldersActivity" android:exported="false" />
         <activity android:name=".FolderViewActivity" android:exported="false" />
+
+        <!-- THE MISSING VIDEO SCREEN -->
+        <activity android:name=".VideosActivity" android:exported="false" />
 
     </application>
 
