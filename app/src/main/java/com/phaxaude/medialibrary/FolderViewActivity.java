@@ -66,8 +66,7 @@ public class FolderViewActivity extends AppCompatActivity {
             }
         });
     }
-
-    // Toggles the visibility of the bottom half of the screen
+    
     // Toggles the visibility of the bottom half of the screen smoothly
     private void toggleFullscreen(boolean goFullscreen) {
         if (goFullscreen && !isFullscreen) {
