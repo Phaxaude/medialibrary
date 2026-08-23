@@ -66,7 +66,7 @@ public class FolderViewActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     // Toggles the visibility of the bottom half of the screen smoothly
     private void toggleFullscreen(boolean goFullscreen) {
         if (goFullscreen && !isFullscreen) {
@@ -119,6 +119,7 @@ public class FolderViewActivity extends AppCompatActivity {
     }
 
     // --- ADAPTER FOR TOP HALF (VIEWPAGER2) ---
+    // --- ADAPTER FOR TOP HALF (VIEWPAGER2) ---
     private class FullscreenAdapter extends RecyclerView.Adapter<FullscreenAdapter.ViewHolder> {
         @NonNull
         @Override
@@ -129,14 +130,17 @@ public class FolderViewActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            com.github.chrisbanes.photoview.PhotoView photoView = (com.github.chrisbanes.photoview.PhotoView) holder.itemView;
+
             Glide.with(FolderViewActivity.this)
                     .load(imagePaths.get(position))
-                    .fitCenter()
-                    .into((ImageView) holder.itemView);
+                    .into(photoView);
 
-            // Pass the touch events on this specific image to our Gesture Detector
-            holder.itemView.setOnTouchListener((v, event) -> {
-                return gestureDetector.onTouchEvent(event);
+            // Feed the touches to our custom up/down detector, but return false
+            // so PhotoView can still use those touches for pinch-to-zoom!
+            photoView.setOnTouchListener((v, event) -> {
+                gestureDetector.onTouchEvent(event);
+                return false;
             });
         }
 
