@@ -13,7 +13,7 @@
         android:layout_weight="1" />
 
     <!-- A thin line to separate the top and bottom -->
-    <View android:layout_width="match_parent" android:layout_height="2dp" android:background="#222222"/>
+    <View android:id="@+id/divider" android:layout_width="match_parent" android:layout_height="2dp" android:background="#222222"/>
 
     <!-- Bottom Half: Thumbnails -->
     <androidx.recyclerview.widget.RecyclerView

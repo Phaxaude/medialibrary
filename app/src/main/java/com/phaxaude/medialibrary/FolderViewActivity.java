@@ -1,7 +1,9 @@
 package com.phaxaude.medialibrary;
 
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -17,7 +19,12 @@ public class FolderViewActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
     private RecyclerView recyclerThumbnails;
+    private View divider;
     private List<String> imagePaths;
+
+    // Variables for the swipe-to-fullscreen feature
+    private GestureDetector gestureDetector;
+    private boolean isFullscreen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,24 +33,26 @@ public class FolderViewActivity extends AppCompatActivity {
 
         viewPager = findViewById(R.id.viewPager);
         recyclerThumbnails = findViewById(R.id.recyclerThumbnails);
+        divider = findViewById(R.id.divider);
 
-        // Get the ID of the folder you tapped on the previous screen
         String bucketId = getIntent().getStringExtra("BUCKET_ID");
         if (bucketId == null) return;
 
-        // Fetch the naturally sorted list of image paths
         imagePaths = MediaFetcher.getImagesForFolder(this, bucketId);
+
+        // Initialize the custom Gesture Detector for Up/Down swipes
+        gestureDetector = new GestureDetector(this, new SwipeGestureListener());
 
         // Set up Top Half (Swiping)
         FullscreenAdapter fullscreenAdapter = new FullscreenAdapter();
         viewPager.setAdapter(fullscreenAdapter);
 
-        // Set up Bottom Half (Grid) - 5 columns
+        // Set up Bottom Half (Grid)
         recyclerThumbnails.setLayoutManager(new GridLayoutManager(this, 5));
         ThumbnailAdapter thumbnailAdapter = new ThumbnailAdapter();
         recyclerThumbnails.setAdapter(thumbnailAdapter);
 
-        // Link the ViewPager swipe event to scroll the bottom grid
+        // Keep the bottom grid synchronized with the top swipes
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -51,6 +60,51 @@ public class FolderViewActivity extends AppCompatActivity {
                 recyclerThumbnails.scrollToPosition(position);
             }
         });
+    }
+
+    // Toggles the visibility of the bottom half of the screen
+    private void toggleFullscreen(boolean goFullscreen) {
+        if (goFullscreen && !isFullscreen) {
+            recyclerThumbnails.setVisibility(View.GONE);
+            divider.setVisibility(View.GONE);
+            isFullscreen = true;
+        } else if (!goFullscreen && isFullscreen) {
+            recyclerThumbnails.setVisibility(View.VISIBLE);
+            divider.setVisibility(View.VISIBLE);
+            isFullscreen = false;
+        }
+    }
+
+    // Listens specifically for directional flings (swipes)
+    private class SwipeGestureListener extends GestureDetector.SimpleOnGestureListener {
+        private static final int SWIPE_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true; // We must consume the initial touch to register the fling
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            if (e1 == null || e2 == null) return false;
+
+            float diffY = e2.getY() - e1.getY();
+            float diffX = e2.getX() - e1.getX();
+
+            // Only trigger if the swipe is primarily vertical (ignores left/right swipes)
+            if (Math.abs(diffY) > Math.abs(diffX)) {
+                if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffY > 0) {
+                        toggleFullscreen(true); // Swiped Down
+                    } else {
+                        toggleFullscreen(false); // Swiped Up
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     // --- ADAPTER FOR TOP HALF (VIEWPAGER2) ---
@@ -66,8 +120,13 @@ public class FolderViewActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Glide.with(FolderViewActivity.this)
                     .load(imagePaths.get(position))
-                    .fitCenter() // Scales perfectly without cropping
+                    .fitCenter()
                     .into((ImageView) holder.itemView);
+
+            // Pass the touch events on this specific image to our Gesture Detector
+            holder.itemView.setOnTouchListener((v, event) -> {
+                return gestureDetector.onTouchEvent(event);
+            });
         }
 
         @Override
@@ -78,7 +137,7 @@ public class FolderViewActivity extends AppCompatActivity {
         }
     }
 
-    // --- ADAPTER FOR BOTTOM HALF (RECYCLERVIEW GRID) ---
+    // --- ADAPTER FOR BOTTOM HALF (GRID) ---
     private class ThumbnailAdapter extends RecyclerView.Adapter<ThumbnailAdapter.ViewHolder> {
         @NonNull
         @Override
@@ -90,13 +149,11 @@ public class FolderViewActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             ImageView imgThumb = holder.itemView.findViewById(R.id.imgThumb);
-
             Glide.with(FolderViewActivity.this)
                     .load(imagePaths.get(position))
-                    .centerCrop() // Perfect squares
+                    .centerCrop()
                     .into(imgThumb);
 
-            // When a thumbnail is clicked, jump the top ViewPager to that image
             holder.itemView.setOnClickListener(v -> {
                 viewPager.setCurrentItem(position, true);
             });
