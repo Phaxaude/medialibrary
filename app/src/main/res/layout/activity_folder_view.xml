@@ -6,22 +6,21 @@
     android:orientation="vertical"
     android:background="#000000">
 
-    <!-- Top Half: Swiping full images -->
+    <!-- Top Half -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="58" />
 
-    <!-- A thin line to separate the top and bottom -->
     <View android:id="@+id/divider" android:layout_width="match_parent" android:layout_height="2dp" android:background="#222222"/>
 
-    <!-- Bottom Half: Thumbnails -->
+    <!-- Bottom Half -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerThumbnails"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_weight="42"
         android:padding="2dp"
         android:clipToPadding="false"/>
 

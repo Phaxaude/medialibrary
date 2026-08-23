@@ -87,23 +87,49 @@ public class FolderViewActivity extends AppCompatActivity {
     }
 
     // Listens specifically for directional flings (swipes)
+    // Listens for our custom touch zones and flings
     private class SwipeGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final int SWIPE_THRESHOLD = 100;
         private static final int SWIPE_VELOCITY_THRESHOLD = 100;
 
         @Override
         public boolean onDown(MotionEvent e) {
-            return true; // We must consume the initial touch to register the fling
+            return true; // Must consume the initial touch
         }
 
+        // --- NEW: THE TAP ZONES ---
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            float x = e.getX();
+            int screenWidth = viewPager.getWidth();
+
+            if (x < screenWidth * 0.25f) {
+                // Tapped Left 25% -> Go Back
+                int currentItem = viewPager.getCurrentItem();
+                if (currentItem > 0) {
+                    viewPager.setCurrentItem(currentItem - 1, true);
+                }
+            } else if (x > screenWidth * 0.75f) {
+                // Tapped Right 25% -> Go Forward
+                int currentItem = viewPager.getCurrentItem();
+                if (currentItem < imagePaths.size() - 1) {
+                    viewPager.setCurrentItem(currentItem + 1, true);
+                }
+            } else {
+                // Tapped Center 50% -> Toggle Fullscreen
+                toggleFullscreen(!isFullscreen);
+            }
+            return true;
+        }
+
+        // --- PRESERVED: SWIPE DOWN TO FULLSCREEN ---
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             if (e1 == null || e2 == null) return false;
-
             float diffY = e2.getY() - e1.getY();
             float diffX = e2.getX() - e1.getX();
 
-            // Only trigger if the swipe is primarily vertical (ignores left/right swipes)
+            // Only trigger if the swipe is vertical
             if (Math.abs(diffY) > Math.abs(diffX)) {
                 if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
                     if (diffY > 0) {
@@ -118,7 +144,6 @@ public class FolderViewActivity extends AppCompatActivity {
         }
     }
 
-    // --- ADAPTER FOR TOP HALF (VIEWPAGER2) ---
     // --- ADAPTER FOR TOP HALF (VIEWPAGER2) ---
     private class FullscreenAdapter extends RecyclerView.Adapter<FullscreenAdapter.ViewHolder> {
         @NonNull
@@ -136,11 +161,46 @@ public class FolderViewActivity extends AppCompatActivity {
                     .load(imagePaths.get(position))
                     .into(photoView);
 
-            // Feed the touches to our custom up/down detector, but return false
-            // so PhotoView can still use those touches for pinch-to-zoom!
-            photoView.setOnTouchListener((v, event) -> {
-                gestureDetector.onTouchEvent(event);
-                return false;
+            // 1. PHOTOVIEW'S NATIVE TAP LISTENER (For Left / Right / Center Taps)
+            photoView.setOnViewTapListener((view, x, y) -> {
+                float screenWidth = view.getWidth();
+
+                if (x < screenWidth * 0.25f) {
+                    // Tapped Left 25% -> Go Back
+                    int currentItem = viewPager.getCurrentItem();
+                    if (currentItem > 0) {
+                        viewPager.setCurrentItem(currentItem - 1, true);
+                    }
+                } else if (x > screenWidth * 0.75f) {
+                    // Tapped Right 25% -> Go Forward
+                    int currentItem = viewPager.getCurrentItem();
+                    if (currentItem < imagePaths.size() - 1) {
+                        viewPager.setCurrentItem(currentItem + 1, true);
+                    }
+                } else {
+                    // Tapped Center 50% -> Toggle Fullscreen
+                    toggleFullscreen(!isFullscreen);
+                }
+            });
+
+            // 2. PHOTOVIEW'S NATIVE FLING LISTENER (For Swipe Down/Up)
+            photoView.setOnSingleFlingListener((e1, e2, velocityX, velocityY) -> {
+                if (e1 == null || e2 == null) return false;
+                float diffY = e2.getY() - e1.getY();
+                float diffX = e2.getX() - e1.getX();
+
+                // Only trigger if the swipe is vertical
+                if (Math.abs(diffY) > Math.abs(diffX)) {
+                    if (Math.abs(diffY) > 100 && Math.abs(velocityY) > 100) {
+                        if (diffY > 0) {
+                            toggleFullscreen(true); // Swiped Down
+                        } else {
+                            toggleFullscreen(false); // Swiped Up
+                        }
+                        return true;
+                    }
+                }
+                return false; // Let PhotoView handle normal panning
             });
         }
 
