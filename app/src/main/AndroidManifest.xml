@@ -32,6 +32,7 @@
 
         <!-- THIS IS THE NEW LINE -->
         <activity android:name=".ImageFoldersActivity" android:exported="false" />
+        <activity android:name=".FolderViewActivity" android:exported="false" />
 
     </application>
 

@@ -27,4 +27,5 @@ public class ImageFolder {
     public String getName() { return name; }
     public int getImageCount() { return imageCount; }
     public List<String> getPreviewImagePaths() { return previewImagePaths; }
+    public String getId() { return id; }
 }

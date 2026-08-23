@@ -32,6 +32,11 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
     public void onBindViewHolder(@NonNull FolderViewHolder holder, int position) {
         ImageFolder folder = folders.get(position);
         holder.tvFolderName.setText(folder.getName() + " (" + folder.getImageCount() + ")");
+        holder.itemView.setOnClickListener(v -> {
+            android.content.Intent intent = new android.content.Intent(context, FolderViewActivity.class);
+            intent.putExtra("BUCKET_ID", folder.getId());
+            context.startActivity(intent);
+        });
 
         List<String> paths = folder.getPreviewImagePaths();
         ImageView[] imageViews = {holder.img1, holder.img2, holder.img3, holder.img4};
