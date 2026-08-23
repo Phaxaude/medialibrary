@@ -62,8 +62,11 @@ public class VideosActivity extends AppCompatActivity {
                     .centerCrop()
                     .into(holder.imgVideoThumb);
 
+            // --- REPLACE THE TOAST WITH THIS INTENT ---
             holder.itemView.setOnClickListener(v -> {
-                Toast.makeText(VideosActivity.this, "Play: " + video.getTitle(), Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(VideosActivity.this, VideoPlayerActivity.class);
+                intent.putExtra("VIDEO_PATH", video.getPath());
+                startActivity(intent);
             });
         }
 

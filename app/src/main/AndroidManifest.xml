@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
+    <!-- APPLICATION BLOCK START -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -19,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MediaLibrary">
+
 
         <!-- The Main Home Screen -->
         <activity
@@ -35,9 +37,13 @@
         <activity android:name=".ImageFoldersActivity" android:exported="false" />
         <activity android:name=".FolderViewActivity" android:exported="false" />
 
-        <!-- THE MISSING VIDEO SCREEN -->
+        <!-- The Video Screens -->
         <activity android:name=".VideosActivity" android:exported="false" />
 
+        <!-- The Video Player Screen -->
+        <activity android:name=".VideoPlayerActivity" android:exported="false" />
+
     </application>
+        <!-- APPLICATION BLOCK END -->
 
 </manifest>
